@@ -4,7 +4,7 @@
 # 图示
 
 ## send
-![图](asset/img/图示1.PNG)
+![图](asset/img/图示-1.png)
 
 ## get
-![图](asset/img/图示2.PNG)
+![图](asset/img/图示-2.png)
