@@ -1,27 +1,18 @@
 package com.yffjglcms.ishare.ctl;
 
-import cn.hutool.core.codec.Base64;
-import cn.hutool.core.util.StrUtil;
-import cn.hutool.json.JSONUtil;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+import com.yffjglcms.ishare.common.R;
 import com.yffjglcms.ishare.consts.MessageType;
 import com.yffjglcms.ishare.entity.Base64ImgMessage;
 import com.yffjglcms.ishare.entity.Message;
+import com.yffjglcms.ishare.entity.MessageResp;
 import com.yffjglcms.ishare.entity.SimpleTxtMessage;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
-import org.springframework.http.MediaType;
-import org.springframework.stereotype.Controller;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.context.request.RequestContextHolder;
-import org.springframework.web.context.request.ServletRequestAttributes;
 
-import javax.servlet.ServletOutputStream;
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.io.PrintWriter;
 import java.time.Duration;
 import java.time.LocalDate;
 
@@ -34,7 +25,7 @@ import java.time.LocalDate;
  */
 @Slf4j
 @RequestMapping("/message")
-@Controller
+@RestController
 public class MessageCtrl {
 
     Cache<String, Message> cache = CacheBuilder.newBuilder()
@@ -44,8 +35,7 @@ public class MessageCtrl {
             .build();
 
     @PostMapping
-    @ResponseBody
-    public int save(@RequestBody Message message, MessageType type) {
+    public R save(@RequestBody Message message, MessageType type) {
         String uuid = message.getUuid();
 
         synchronized (cache) {
@@ -54,7 +44,7 @@ public class MessageCtrl {
 
                 // 已存在
                 if (ifPresent != null) {
-                    return 0;
+                    return R.fail("已存在.");
                 }
 
                 if (type == null) {
@@ -91,66 +81,31 @@ public class MessageCtrl {
             }
         }
 
-        return 1;
+        return R.ok(null);
     }
 
     @GetMapping("{uuid}")
-    public void get(@PathVariable("uuid") String uuid, String code) throws IOException {
+    public R get(@PathVariable("uuid") String uuid, String code) {
 
         Message ifPresent = cache.getIfPresent(uuid);
         if (ifPresent == null) {
-            return;
+            return R.fail();
         }
 
         String trueCode = ifPresent.getCode();
         if (!(StringUtils.isEmpty(trueCode) || trueCode.equals(code))) {
-            writerStr("校验失败。");
-            return;
+            return R.fail("校验失败");
         }
+        MessageResp messageResp = new MessageResp<>();
+        messageResp.setContent(ifPresent.getContent());
 
         if (ifPresent instanceof Base64ImgMessage) {
-            String content = (String) ifPresent.getContent();
-            writerImg(content);
-            return;
+            messageResp.setType(MessageType.Base64ImgMessage);
+        } else {
+            messageResp.setType(MessageType.SimpleTxtMessage);
         }
 
-        writerJson(ifPresent.getContent());
-
-    }
-
-    private void writerStr(String s) throws IOException {
-        ServletRequestAttributes servletRequestAttributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
-        HttpServletResponse response = servletRequestAttributes.getResponse();
-        response.setContentType(MediaType.TEXT_HTML_VALUE);
-        PrintWriter writer = response.getWriter();
-        writer.println(s);
-        writer.flush();
-    }
-
-    private void writerJson(Object obj) throws IOException {
-        ServletRequestAttributes servletRequestAttributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
-        HttpServletResponse response = servletRequestAttributes.getResponse();
-        response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-        PrintWriter writer = response.getWriter();
-        writer.println(JSONUtil.toJsonStr(obj));
-        writer.flush();
-    }
-
-    private void writerImg(String base64Str) throws IOException {
-        boolean notEmpty = StrUtil.isNotEmpty(base64Str);
-        if (!notEmpty) {
-            return;
-        }
-
-        base64Str = base64Str.replaceAll("data:image/(png|jpeg|gif);base64,", "");
-
-        ServletRequestAttributes servletRequestAttributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
-        HttpServletResponse response = servletRequestAttributes.getResponse();
-        response.setContentType(MediaType.IMAGE_PNG_VALUE);
-        ServletOutputStream outputStream = response.getOutputStream();
-        Base64.decodeToStream(base64Str, outputStream, false);
-        outputStream.flush();
-        outputStream.close();
+        return R.ok(messageResp);
     }
 
 }
