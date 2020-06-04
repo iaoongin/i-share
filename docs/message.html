@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Message</title>
+    <script src="http://libs.baidu.com/jquery/2.0.0/jquery.min.js"></script>
+</head>
+
+<body>
+    <div id="message"></div>
+</body>
+<script>
+    $(() => {
+        const is_prod = true
+        const baseUrl = is_prod ? "http://119.23.190.226/i-share/" : "http://127.0.0.1/";
+
+        $.getUrlParam = function (name) {
+            var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)");
+            var r = window.location.search.substr(1).match(reg);
+            if (r != null) return unescape(r[2]);
+            return null;
+        }
+
+        let uuid = $.getUrlParam("uuid")
+
+        let url = `${baseUrl}message/${uuid}`
+        // post
+        $.ajax({
+            type: "GET",
+            url: url,
+            dataType: "json",
+            success: function (resp) {
+                let data = resp.data
+                if (resp.code === 1) {
+                    if (data.type == 'Base64ImgMessage') {
+                        $('#message').html(`<img src='${data.content}' />`)
+                    } else {
+                        $('#message').html(data.content)
+                    }
+                } else {
+                    alert("获取失败" + JSON.stringify(resp.msg));
+                }
+
+            },
+            error: function (resp) {
+                alert("获取失败" + JSON.stringify(resp));
+            }
+        });
+    })
+</script>
+
+</html>
