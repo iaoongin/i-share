@@ -9,7 +9,7 @@
 </head>
 
 <body>
-    <div id="message"></div>
+<div id="message"></div>
 </body>
 <script>
     $(() => {
@@ -24,30 +24,42 @@
         }
 
         let uuid = $.getUrlParam("uuid")
+        let code = $.getUrlParam("code")
 
-        let url = `${baseUrl}message/${uuid}`
-        // post
-        $.ajax({
-            type: "GET",
-            url: url,
-            dataType: "json",
-            success: function (resp) {
-                let data = resp.data
-                if (resp.code === 1) {
-                    if (data.type == 'Base64ImgMessage') {
-                        $('#message').html(`<img src='${data.content}' />`)
+        fetch(uuid, code);
+
+        function fetch(uuid, code) {
+
+            let url = `${baseUrl}message/${uuid}?code=${code}`
+            // post
+            $.ajax({
+                type: "GET",
+                url: url,
+                dataType: "json",
+                success: function (resp) {
+                    let data = resp.data
+                    let rCode = resp.code;
+                    if (rCode === 1) {
+                        if (data.type == 'Base64ImgMessage') {
+                            $('#message').html(`<img src='${data.content}' />`)
+                        } else {
+                            $('#message').html(data.content)
+                        }
+                    } else if (rCode == 0 && resp.msg[0] == '校验失败') {
+                        let ipt = prompt("输入code");
+                        fetch(uuid, ipt)
                     } else {
-                        $('#message').html(data.content)
+                        alert("获取失败" + JSON.stringify(resp.msg));
                     }
-                } else {
-                    alert("获取失败" + JSON.stringify(resp.msg));
-                }
 
-            },
-            error: function (resp) {
-                alert("获取失败" + JSON.stringify(resp));
-            }
-        });
+                },
+                error: function (resp) {
+                    alert("获取失败" + JSON.stringify(resp));
+                }
+            });
+        }
+
+
     })
 </script>
 
