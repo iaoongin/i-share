@@ -11,11 +11,36 @@
             width: 20rem;
             height: 300px;
         }
+
+        #loginDiv {
+            display: none;
+        }
+
+        .login #loginDiv {
+            display: block;
+        }
+
+        .login #notLoginDiv {
+            display: none;
+        }
     </style>
 </head>
 
 <body>
     <div>
+
+        <div class="header">
+            <div id="loginDiv">
+                你好 <span id="username"></span>
+                <button id="logout">登出</button>
+            </div>
+            <div id="notLoginDiv">
+                <a href="http://ishare.dev.yffjglcms.com:8002/oauth2/custom/authorization/resource">resource 登录</a>
+                <a href="http://ishare.dev.yffjglcms.com:8002/oauth2/custom/authorization/qq">qq 登录</a>
+            </div>
+
+        </div>
+        <hr>
         <div>
             <div><label for="type">uuid</label></div>
             <div><select id="type">
@@ -73,8 +98,15 @@
 
         $(() => {
 
-            const is_prod = true
-            const baseUrl = is_prod ? "http://119.23.190.226/i-share/" : "http://127.0.0.1/";
+            const is_prod = false
+            const baseUrl = is_prod ? "http://119.23.190.226/i-share/" :
+                "http://ishare.dev.yffjglcms.com:8002/";
+            const userUrl = is_prod ? "http://119.23.190.226/i-share/" :
+                "http://resource-service.dev.yffjglcms.com:8081/";
+
+            const ssoUrl = is_prod ? "http://119.23.190.226/i-share/" :
+                "http://authorizer-service.dev.yffjglcms.com:8080/";
+
             const current_location = window.location.href
             const $content = $('#content');
             const $contentBox = $('#contentBox');
@@ -144,8 +176,107 @@
                     }
                 });
             })
+
+
+            var data = getQueryVariable('data')
+            if (data) {
+                localStorage.setItem('data', decodeURIComponent(decodeURIComponent(data)))
+                window.location = '/'
+            }
+
+            var operation = getQueryVariable('operation')
+            if (!!operation && operation == 'logout') {
+                removeToken()
+                window.location = '/'
+            }
+
+
+            // 获取用户信息
+            $.ajax({
+                type: 'get',
+                url: `${userUrl}api/v1/user`,
+                headers: {
+                    'authorization': 'Bearer ' + getToken()
+                },
+                // xhrFields: {
+                //     withCredentials: true //允许跨域带Cookie
+                // },
+                success: (resp) => {
+                    // 1
+                    $(".header").addClass("login")
+                    $('#username').html(resp.username)
+
+                },
+                error: function (resp) {
+                    $(".header").removeClass("login")
+                    removeToken()
+
+                }
+            })
+
+            $('#notLoginDiv a').each((i, e) => {
+                console.log(e);
+
+                e.href = e.href + "?state=abc&redirectUrl=" + current_location
+            })
+
+            // 登出
+            $('#logout').click(() => {
+                window.location = `${ssoUrl}oauth/logout?redirect_url=${window.location}?operation=logout`
+
+                // var url = 'http://ishare.dev.yffjglcms.com:8002/oauth2/custom/logout'
+                // // 登录
+                // $.ajax({
+                //     type: 'get',
+                //     url: `${baseUrl}oauth2/logout`,
+                //     headers: {
+                //         'authorization': 'Bearer ' + getToken()
+                //     },
+                //     // xhrFields: {
+                //     //     withCredentials: true //允许跨域带Cookie
+                //     // },
+                //     success: (resp) => {
+                //         // 1
+                //         $(".header").addClass("login")
+                //         $('#username').html(resp.username)
+
+                //     },
+                //     error: function (resp) {
+                //         $(".header").removeClass("login")
+
+                //     }
+                // })
+
+
+
+            })
         })
+
+        function getQueryVariable(variable) {
+            var query = window.location.search.substring(1);
+            var vars = query.split("&");
+            for (var i = 0; i < vars.length; i++) {
+                var pair = vars[i].split("=");
+                if (pair[0] == variable) {
+                    return pair[1];
+                }
+            }
+            return (false);
+        }
+
+        function getToken() {
+            var data = localStorage.getItem('data')
+            if (data) {
+                return JSON.parse(data).access_token
+            }
+            return null;
+        }
+
+        function removeToken() {
+            localStorage.removeItem('data')
+        }
     </script>
+
 </body>
 
 </html>
