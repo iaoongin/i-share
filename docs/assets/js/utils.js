@@ -69,6 +69,10 @@ TokenUtil.getRefreshToken = function () {
     return localStorage.getItem('refresh_token')
 }
 
+TokenUtil.removeToken = function(){
+    localStorage.removeItem('access_token')
+    localStorage.removeItem('refresh_token')
+}
 
 
 const HttpUtil = {
@@ -106,6 +110,10 @@ HttpUtil.ajax = (method, url, headers, data, success, error) => {
 }
 
 HttpUtil.post = (url, data, success) => {
+    HttpUtil.ajax('post', url, {'Content-Type': "application/x-www-form-urlencoded"}, data, success)
+}
+
+HttpUtil.postJson = (url, data, success) => {
     HttpUtil.ajax('post', url, {'Content-Type': "application/json;charset=utf-8"}, JSON.stringify(data), success)
 }
 

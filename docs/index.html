@@ -94,6 +94,7 @@
                     if (refresh_token) {
                         TokenUtil.setRefreshToken(refresh_token)
                     }
+                    window.location.reload()
                 }
             })
         }
@@ -200,7 +201,7 @@
                 console.log(data)
 
                 // post
-                HttpUtil.post(`${config.baseUrl}message?type=${type}`, data, resp => {
+                HttpUtil.postJson(`${config.baseUrl}message?type=${type}`, data, resp => {
                     // if (resp.code === 200) {
                     let url = `${current_location}message.html?uuid=${uuid}`;
                     $('#url').attr('href', url)
@@ -236,8 +237,11 @@
 
             // 登出
             $('#logout').click(() => {
-                window.location =
-                    `${ssoUrl}oauth/logout?redirect_url=${window.location}?operation=logout`
+                TokenUtil.removeToken()
+                localStorage.removeItem('username')
+                window.location.reload()
+                // window.location =
+                //     `${ssoUrl}oauth/logout?redirect_url=${window.location}?operation=logout`
 
             })
         })
