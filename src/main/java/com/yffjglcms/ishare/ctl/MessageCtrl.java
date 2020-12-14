@@ -108,4 +108,8 @@ public class MessageCtrl {
         return R.ok(messageResp);
     }
 
+    @GetMapping("/test/test")
+    public R test(){
+        return R.ok("你好");
+    }
 }

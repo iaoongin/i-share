@@ -4,42 +4,14 @@ server:
 spring:
   main:
     allow-bean-definition-overriding: true
-  security:
-    oauth2:
-      client:
-        registration:
-          resource:
-            provider: resource
-            client-id: ishare
-            client-secret: oauth2
-#            access-token-uri: http://authorizer-service.dev.yffjglcms.com:8080/oauth/token
-            # code 回调地址
-            redirectUri: "{baseUrl}/oauth2/code/{registrationId}"
-            scope:
-              - READ
-              - WRITE
-            authorizationGrantType: authorization_code
-        #          qq:
-        #            provider: resource
-        #            client-id: ishare
-        #            client-secret: oauth2
-        #            access-token-uri: http://authorizer-service.dev.yffjglcms.com:8080/oauth/token
-        #            # code 回调地址
-        #            redirectUri: "{baseUrl}/oauth2/code/{registrationId}"
-        #            scope:
-        #              - READ
-        #              - WRITE
-        #            authorizationGrantType: authorization_code
-        provider:
-          resource:
-            # 用于 授予 client 权限的地址，会拼接 当前网址地址
-            authorizationUri: http://authorizer-service.dev.yffjglcms.com:8080/oauth/authorize
-            # 获取access_token
-            tokenUri: http://authorizer-service.dev.yffjglcms.com:8080/oauth/token
-            # 获取access_token后，并获取 userInfo
-            userInfoUri:  http://resource-service.dev.yffjglcms.com:8081/api/v1/user
-            userNameAttribute: username
 
 logging:
   level:
-    org.springframework.security: debug
+    "com.yffjglcms": debug
+
+sso:
+  key:
+    pub:
+      -----BEGIN PUBLIC KEY-----
+      MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAgVUTh5VYsmaEvtD+PZgk/07EcxNhkfMgn1eoiGqB9snoZtTMKJtDq0mpf7gMB/0UYlMR8aQZ1rmyfnlC7kRhtSzMmrZ4WfPicoQsNKlciK/1aG+S4KLynLgoSLOwbyi1MrFBNkQT/HJiwGxdC9YF82FFHVbVhyl+ccIHXgY9NFEp+tBokU6RMVRBGgNszriw/RvHPnwEvG7KmSYUIkCpU8r1WcGawQ0Xabt7qtwfaTYYC5Nxl7pbqJSsqMpg9dfXoaqP0tnGxPj2ArMFK9TBUXStLSLEqHzpu//3Plu2BBq2PFoR1EIj01DV2dCFt0FBOk/TXctJXewRxgKO4eK6XQIDAQAB
+      -----END PUBLIC KEY-----

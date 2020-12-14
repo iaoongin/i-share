@@ -4,7 +4,12 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>com.yffjglcms</groupId>
+    <parent>
+        <artifactId>sp-parent</artifactId>
+        <groupId>com.yffjglcms</groupId>
+        <version>1.0-SNAPSHOT</version>
+    </parent>
+
     <artifactId>i-share</artifactId>
     <version>1.0-SNAPSHOT</version>
 
@@ -41,28 +46,24 @@
         </dependency>
 
         <dependency>
-            <groupId>org.springframework.security.oauth.boot</groupId>
-            <artifactId>spring-security-oauth2-autoconfigure</artifactId>
-            <version>${spring-boot-dependencies.version}</version>
+            <groupId>com.yffjglcms</groupId>
+            <artifactId>sp-sso-client</artifactId>
+            <version>1.0-SNAPSHOT</version>
         </dependency>
 
-        <dependency>
-            <groupId>org.springframework.security</groupId>
-            <artifactId>spring-security-oauth2-client</artifactId>
-        </dependency>
     </dependencies>
 
-    <dependencyManagement>
-        <dependencies>
-            <dependency>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-dependencies</artifactId>
-                <version>${spring-boot-dependencies.version}</version>
-                <type>pom</type>
-                <scope>import</scope>
-            </dependency>
-        </dependencies>
-    </dependencyManagement>
+    <!--    <dependencyManagement>-->
+    <!--        <dependencies>-->
+    <!--            <dependency>-->
+    <!--                <groupId>org.springframework.boot</groupId>-->
+    <!--                <artifactId>spring-boot-dependencies</artifactId>-->
+    <!--                <version>${spring-boot-dependencies.version}</version>-->
+    <!--                <type>pom</type>-->
+    <!--                <scope>import</scope>-->
+    <!--            </dependency>-->
+    <!--        </dependencies>-->
+    <!--    </dependencyManagement>-->
 
     <properties>
 
@@ -74,102 +75,15 @@
 
         <guava.version>29.0-jre</guava.version>
         <hutool-all.version>5.3.6</hutool-all.version>
-        <spring-boot-dependencies.version>2.2.6.RELEASE</spring-boot-dependencies.version>
 
     </properties>
 
     <build>
         <plugins>
-
-            <!-- 指定jdk -->
             <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <configuration>
-                    <source>1.8</source>
-                    <target>1.8</target>
-                    <encoding>UTF-8</encoding>
-                </configuration>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
             </plugin>
-
-            <!--打包处理，将jar包和配置文件独立 start-->
-            <!--处理lib-->
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-dependency-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <id>copy-dependencies</id>
-                        <phase>prepare-package</phase>
-                        <goals>
-                            <goal>copy-dependencies</goal>
-                        </goals>
-                        <configuration>
-                            <outputDirectory>${project.build.directory}/app/lib</outputDirectory>
-                            <overWriteReleases>false</overWriteReleases>
-                            <overWriteSnapshots>false</overWriteSnapshots>
-                            <overWriteIfNewer>true</overWriteIfNewer>
-                        </configuration>
-                    </execution>
-
-                </executions>
-            </plugin>
-
-            <!--处理配置文件-->
-            <plugin>
-                <artifactId>maven-resources-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <id>copy-resources</id>
-                        <phase>validate</phase>
-                        <goals>
-                            <goal>copy-resources</goal>
-                        </goals>
-                        <configuration>
-                            <!-- 并把文件复制到target/conf目录下-->
-                            <outputDirectory>${project.build.directory}/app/config</outputDirectory>
-                            <resources>
-                                <resource>
-                                    <directory>src/main/resources</directory>
-                                    <!-- 指定不需要处理的资源 <excludes> <exclude>WEB-INF/*.*</exclude> </excludes> -->
-                                    <!--指定了就会打包在jar里，不会复制出来-->
-                                    <excludes>
-                                        <!--                                        <exclude>logback.xml</exclude>-->
-                                        <!--                                        <exclude>**/*.xml</exclude>-->
-                                    </excludes>
-
-                                    <filtering>true</filtering>
-                                </resource>
-                            </resources>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-
-            <!--处理jar包-->
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-jar-plugin</artifactId>
-                <configuration>
-                    <archive>
-                        <manifest>
-                            <addClasspath>true</addClasspath>
-                            <classpathPrefix>lib/</classpathPrefix>
-                            <mainClass>com.yffjglcms.ishare.IShareSvr</mainClass>
-                        </manifest>
-                    </archive>
-                    <!-- 排除配置文件 -->
-                    <excludes>
-                        <exclude>*.yml</exclude>
-                        <exclude>*.properties</exclude>
-                        <exclude>**.xml</exclude>
-                        <exclude>mapper/*.xml</exclude>
-                    </excludes>
-                    <outputDirectory>${project.build.directory}/app</outputDirectory>
-                </configuration>
-            </plugin>
-            <!--打包处理，将jar包和配置文件独立 end-->
         </plugins>
-
     </build>
 </project>

@@ -30,7 +30,7 @@ public class R<T> {
 
     public static <T> R<T> ok(T data) {
         R<T> r = new R<>();
-        r.code = 1;
+        r.code = 200;
         r.data = data;
         return r;
     }

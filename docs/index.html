@@ -35,8 +35,13 @@
                 <button id="logout">登出</button>
             </div>
             <div id="notLoginDiv">
-                <a href="http://ishare.dev.yffjglcms.com:8002/oauth2/custom/authorization/resource">resource 登录</a>
-                <a href="http://ishare.dev.yffjglcms.com:8002/oauth2/custom/authorization/qq">qq 登录</a>
+                <div>
+                    用户名：<input type="text" id="usernameIpt">
+                    密码：<input type="password" id="passwordIpt">
+                    <button id='login'>登录</button>
+                </div>
+                <!-- <a href="http://ishare.dev.yffjglcms.com:8002/oauth2/custom/authorization/resource">resource 登录</a>
+                <a href="http://ishare.dev.yffjglcms.com:8002/oauth2/custom/authorization/qq">qq 登录</a> -->
             </div>
 
         </div>
@@ -69,7 +74,49 @@
             <a id="url" href="" target="_blank"></a>
         </div>
     </div>
-    <script>
+    <script type="module">
+        import { config } from './assets/js/config.js'
+        import { TokenUtil, HttpUtil } from './assets/js/utils.js'
+
+        $('#login').on('click', login)
+
+        function login() {
+            var username = $('#usernameIpt').val();
+            var password = $('#passwordIpt').val();
+            HttpUtil.post(config.ssoUrl + 'login', {
+                username, password
+            }, (resp) => {
+                console.log(resp)
+                var access_token = resp.data.access_token
+                var refresh_token = resp.data.refresh_token
+                if (access_token) {
+                    TokenUtil.setAccessToken(access_token)
+                    if (refresh_token) {
+                        TokenUtil.setRefreshToken(refresh_token)
+                    }
+                }
+            })
+        }
+
+
+        // 获取用户信息
+        HttpUtil.get(config.baseUrl + 'sso/user', {}, resp => {
+            $(".header").addClass("login")
+            $('#username').html(resp.data.username)
+
+            localStorage.setItem('username', resp.data.username)
+        }, error => {
+            $(".header").removeClass("login")
+            removeToken()
+        })
+
+
+
+    </script>
+    <script type="module">
+        import { config } from './assets/js/config.js'
+        import { TokenUtil, HttpUtil } from './assets/js/utils.js'
+
         function run(input_file, get_data) {
             /*input_file：文件按钮对象*/
             /*get_data: 转换成功后执行的方法*/
@@ -98,14 +145,14 @@
 
         $(() => {
 
-            const is_prod = false
-            const baseUrl = is_prod ? "http://119.23.190.226/i-share/" :
-                "http://ishare.dev.yffjglcms.com:8002/";
-            const userUrl = is_prod ? "http://119.23.190.226/i-share/" :
-                "http://resource-service.dev.yffjglcms.com:8081/";
+            // const is_prod = false
+            // const baseUrl = is_prod ? "http://119.23.190.226/i-share/" :
+            //     "http://ishare.dev.yffjglcms.com:8002/";
+            // const userUrl = is_prod ? "http://119.23.190.226/i-share/" :
+            //     "http://resource-service.dev.yffjglcms.com:8081/";
 
-            const ssoUrl = is_prod ? "http://119.23.190.226/i-share/" :
-                "http://authorizer-service.dev.yffjglcms.com:8080/";
+            // const ssoUrl = is_prod ? "http://119.23.190.226/i-share/" :
+            //     "http://authorizer-service.dev.yffjglcms.com:8080/";
 
             const current_location = window.location.href
             const $content = $('#content');
@@ -136,10 +183,8 @@
 
             $('#submit').click(() => {
                 let uuid = $('#uuid').val();
-
                 let content = $content.val();
                 let code = $('#code').val();
-
                 let type = $type.val();
 
                 if (!uuid) {
@@ -152,67 +197,36 @@
                     content,
                     code
                 };
-                // console.log(data)
+                console.log(data)
 
                 // post
-                $.ajax({
-                    type: "POST",
-                    url: `${baseUrl}message?type=${type}`,
-                    contentType: "application/json;charset=utf-8",
-                    data: JSON.stringify(data),
-                    dataType: "json",
-                    success: function (resp) {
-                        if (resp.code === 1) {
-                            let url = `${current_location}message.html?uuid=${uuid}`;
-                            $('#url').attr('href', url)
-                            $('#url').html(url)
-                        } else {
-                            alert("发送失败" + JSON.stringify(resp.msg));
-                        }
+                HttpUtil.post(`${config.baseUrl}message?type=${type}`, data, resp => {
+                    // if (resp.code === 200) {
+                    let url = `${current_location}message.html?uuid=${uuid}`;
+                    $('#url').attr('href', url)
+                    $('#url').html(url)
+                    // } else {
+                    //     alert("发送失败" + JSON.stringify(resp.msg));
+                    // }
+                }, error => alert("发送失败" + JSON.stringify(error)))
 
-                    },
-                    error: function (resp) {
-                        alert("提交失败" + JSON.stringify(resp));
-                    }
-                });
+                // $.ajax({
+                //     type: "POST",
+                //     url: `${baseUrl}message?type=${type}`,
+                //     contentType: "application/json;charset=utf-8",
+                //     data: JSON.stringify(data),
+                //     dataType: "json",
+                //     success: function (resp) {
+
+
+                //     },
+                //     error: function (resp) {
+                //         alert("提交失败" + JSON.stringify(resp));
+                //     }
+                // });
             })
 
 
-            var data = getQueryVariable('data')
-            if (data) {
-                localStorage.setItem('data', decodeURIComponent(decodeURIComponent(data)))
-                window.location = '/'
-            }
-
-            var operation = getQueryVariable('operation')
-            if (!!operation && operation == 'logout') {
-                removeToken()
-                window.location = '/'
-            }
-
-
-            // 获取用户信息
-            $.ajax({
-                type: 'get',
-                url: `${userUrl}api/v1/user`,
-                headers: {
-                    'authorization': 'Bearer ' + getToken()
-                },
-                // xhrFields: {
-                //     withCredentials: true //允许跨域带Cookie
-                // },
-                success: (resp) => {
-                    // 1
-                    $(".header").addClass("login")
-                    $('#username').html(resp.username)
-
-                },
-                error: function (resp) {
-                    $(".header").removeClass("login")
-                    removeToken()
-
-                }
-            })
 
             $('#notLoginDiv a').each((i, e) => {
                 console.log(e);
@@ -222,55 +236,11 @@
 
             // 登出
             $('#logout').click(() => {
-                window.location = `${ssoUrl}oauth/logout?redirect_url=${window.location}?operation=logout`
-
-                // var url = 'http://ishare.dev.yffjglcms.com:8002/oauth2/custom/logout'
-                // // 登录
-                // $.ajax({
-                //     type: 'get',
-                //     url: `${baseUrl}oauth2/logout`,
-                //     headers: {
-                //         'authorization': 'Bearer ' + getToken()
-                //     },
-                //     // xhrFields: {
-                //     //     withCredentials: true //允许跨域带Cookie
-                //     // },
-                //     success: (resp) => {
-                //         // 1
-                //         $(".header").addClass("login")
-                //         $('#username').html(resp.username)
-
-                //     },
-                //     error: function (resp) {
-                //         $(".header").removeClass("login")
-
-                //     }
-                // })
-
-
+                window.location =
+                    `${ssoUrl}oauth/logout?redirect_url=${window.location}?operation=logout`
 
             })
         })
-
-        function getQueryVariable(variable) {
-            var query = window.location.search.substring(1);
-            var vars = query.split("&");
-            for (var i = 0; i < vars.length; i++) {
-                var pair = vars[i].split("=");
-                if (pair[0] == variable) {
-                    return pair[1];
-                }
-            }
-            return (false);
-        }
-
-        function getToken() {
-            var data = localStorage.getItem('data')
-            if (data) {
-                return JSON.parse(data).access_token
-            }
-            return null;
-        }
 
         function removeToken() {
             localStorage.removeItem('data')
