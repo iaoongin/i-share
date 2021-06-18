@@ -10,7 +10,7 @@ var prod = {
 
 
 
-var config = dev
+var config = prod
 export {
     config
 }
