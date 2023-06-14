@@ -72,7 +72,7 @@
 
         <lombok.version>1.18.12</lombok.version>
 
-        <guava.version>29.0-jre</guava.version>
+        <guava.version>32.0.0-jre</guava.version>
         <hutool-all.version>5.3.6</hutool-all.version>
         <spring-boot-dependencies.version>2.2.6.RELEASE</spring-boot-dependencies.version>
 
